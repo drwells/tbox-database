@@ -10,17 +10,12 @@
 #ifndef included_tbox_Parser
 #define included_tbox_Parser
 
-#ifndef included_stdio
-#define included_stdio
-#include <stdio.h>
-#endif
 #include "tbox/Database.h"
 #include "tbox/List.h"
 #include "tbox/Pointer.h"
-#ifndef included_String
+
 #include <string>
-#define included_String
-#endif
+#include <stdio.h>
 
 #include <mpi.h>
 

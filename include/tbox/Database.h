@@ -10,21 +10,13 @@
 #ifndef included_tbox_Database
 #define included_tbox_Database
 
-
-#ifndef included_iostream
-#define included_iostream
-#include <iostream>
-#endif
-
 #include "tbox/Array.h"
 #include "tbox/DatabaseBox.h"
 #include "tbox/Complex.h"
 #include "tbox/Pointer.h"
-#ifndef included_String
-#include <string>
-#define included_String
-#endif
 
+#include <iostream>
+#include <string>
 
 namespace SAMRAI {
    namespace tbox {

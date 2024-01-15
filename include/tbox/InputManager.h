@@ -12,10 +12,8 @@
 
 #include "tbox/InputDatabase.h"
 #include "tbox/Pointer.h"
-#ifndef included_String
+
 #include <string>
-#define included_String
-#endif
 
 #include <mpi.h>
 
