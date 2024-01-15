@@ -32,7 +32,7 @@ namespace SAMRAI {
 */
 
 void InputManager::parseInputFile(
-   const std::string& filename, Pointer<InputDatabase> db)
+   const std::string& filename, Pointer<InputDatabase> db, MPI_Comm communicator)
 {
    int mpi_has_been_started = 0;
    int ierr                 = MPI_Initialized(&mpi_has_been_started);
@@ -43,7 +43,7 @@ void InputManager::parseInputFile(
 
    if (mpi_has_been_started)
    {
-      ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      ierr = MPI_Comm_rank(communicator, &rank);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (rank == 0) {
@@ -54,7 +54,7 @@ void InputManager::parseInputFile(
 
    if (mpi_has_been_started)
    {
-      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, communicator);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (!worked) {
@@ -65,7 +65,7 @@ void InputManager::parseInputFile(
    /*
     * Parse input file.
     */
-   Parser parser;
+   Parser parser(communicator);
    const int errors = parser.parse(filename, fstream, db);
    const int warnings = parser.getNumberWarnings();
 

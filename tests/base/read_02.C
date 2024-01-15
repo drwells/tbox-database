@@ -15,7 +15,7 @@ int main(int argc, char **argv)
    {
       tbox::Pointer<tbox::MemoryDatabase> database = new tbox::MemoryDatabase("db");
 
-      tbox::InputManager::parseInputFile(argv[1], database);
+      tbox::InputManager::parseInputFile(argv[1], database, MPI_COMM_WORLD);
 
       int rank = 0;
       ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);

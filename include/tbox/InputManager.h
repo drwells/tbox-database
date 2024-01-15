@@ -17,6 +17,7 @@
 #define included_String
 #endif
 
+#include <mpi.h>
 
 namespace SAMRAI {
    namespace tbox {
@@ -61,9 +62,14 @@ public:
 
    /**
     * Parse data from the specified file into the existing database.
+    *
+    * @param[in] filename Name of the file to open.
+    * @param[inout] db Database to populate.
+    * @param[in] communicator MPI communicator, used to ensure the same file is
+    *            not opened on multiple ranks.
     */
    static void parseInputFile(
-      const std::string& filename, Pointer<InputDatabase> db);
+      const std::string& filename, Pointer<InputDatabase> db, MPI_Comm communicator);
 };
 
 

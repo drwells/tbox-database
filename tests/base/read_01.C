@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 
    tbox::Pointer<tbox::MemoryDatabase> database = new tbox::MemoryDatabase("db");
 
-   tbox::InputManager::parseInputFile(argv[1], database);
+   tbox::InputManager::parseInputFile(argv[1], database, MPI_COMM_SELF);
 
    std::ofstream out("output");
    database->printClassData(out);

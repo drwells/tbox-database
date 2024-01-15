@@ -40,7 +40,8 @@ bool Parser::s_static_tables_initialized = 0;
 *************************************************************************
 */
 
-Parser::Parser()
+Parser::Parser(MPI_Comm communicator)
+   : d_communicator(communicator)
 {
    if (!s_static_tables_initialized) {
       parser_static_table_initialize();
@@ -263,7 +264,7 @@ bool Parser::pushIncludeFile(const std::string& filename)
    int rank = 0;
    if (mpi_has_been_started)
    {
-      int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      int ierr = MPI_Comm_rank(d_communicator, &rank);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (rank == 0) {
@@ -274,7 +275,7 @@ bool Parser::pushIncludeFile(const std::string& filename)
 
    if (mpi_has_been_started)
    {
-      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, d_communicator);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
 
@@ -329,18 +330,18 @@ int Parser::yyinput(char *buffer, const int max_size)
    int byte = 0;
    int rank = 0;
    if (mpi_has_been_started) {
-      ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      ierr = MPI_Comm_rank(d_communicator, &rank);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (rank == 0) {
       byte = fread(buffer, 1, max_size, d_parse_stack.getFirstItem().d_fstream);
    }
    if (mpi_has_been_started) {
-      ierr = MPI_Bcast(&byte, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      ierr = MPI_Bcast(&byte, 1, MPI_INT, 0, d_communicator);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (byte > 0 && mpi_has_been_started) {
-      ierr = MPI_Bcast(buffer, byte, MPI_INT, 0, MPI_COMM_WORLD);
+      ierr = MPI_Bcast(buffer, byte, MPI_INT, 0, d_communicator);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    return(byte);

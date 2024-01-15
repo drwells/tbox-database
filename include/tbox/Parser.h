@@ -22,6 +22,8 @@
 #define included_String
 #endif
 
+#include <mpi.h>
+
 namespace SAMRAI {
    namespace tbox {
 
@@ -57,8 +59,11 @@ public:
     * may be called multiple times to parse multiple input files, but all
     * state values (such as the number of errors or warnings) are reset at
     * the beginning of each new parse pass.
+    *
+    * @param[in] communicator MPI communicator to use to prevent opening the
+    *            same file on multiple ranks.
     */
-   Parser();
+   Parser(MPI_Comm communicator);
 
    /**
     * Destroy the parser object and deallocate parser data.
@@ -206,6 +211,8 @@ private:
    static bool s_static_tables_initialized;
 
    std::string d_pathname;           // path to filename for including
+
+   MPI_Comm d_communicator;
 };
 
 
