@@ -34,17 +34,29 @@ namespace SAMRAI {
 void InputManager::parseInputFile(
    const std::string& filename, Pointer<InputDatabase> db)
 {
+   int mpi_has_been_started = 0;
+   int ierr                 = MPI_Initialized(&mpi_has_been_started);
+   TBOX_ASSERT(ierr == MPI_SUCCESS);
+
    FILE* fstream = NULL;
    int rank = 0;
-   int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
+
+   if (mpi_has_been_started)
+   {
+      ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
    if (rank == 0) {
       fstream = fopen(filename.c_str(), "r");
    }
 
    int worked = (fstream ? 1 : 0);
-   ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
+
+   if (mpi_has_been_started)
+   {
+      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
    if (!worked) {
       TBOX_ERROR("InputManager:: Could not open input file``" <<
                   filename.c_str() << "''\n");

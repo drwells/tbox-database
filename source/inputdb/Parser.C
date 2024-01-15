@@ -10,6 +10,7 @@
 #include "tbox/Parser.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include <mpi.h>
@@ -240,6 +241,10 @@ Pointer<Database> Parser::getDatabaseWithKey(const std::string& key)
 
 bool Parser::pushIncludeFile(const std::string& filename)
 {
+   int mpi_has_been_started = 0;
+   int ierr                 = MPI_Initialized(&mpi_has_been_started);
+   TBOX_ASSERT(ierr == MPI_SUCCESS);
+
    FILE *fstream = NULL;
 
    std::string filename_with_path;
@@ -256,16 +261,22 @@ bool Parser::pushIncludeFile(const std::string& filename)
    }
 
    int rank = 0;
-   int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
+   if (mpi_has_been_started)
+   {
+      int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
    if (rank == 0) {
       fstream = fopen(filename_with_path.c_str(), "r");
    }
 
    int worked = (fstream ? 1 : 0);
 
-   ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
+   if (mpi_has_been_started)
+   {
+      ierr = MPI_Bcast(&worked, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
 
    if (!worked) {
       error("Could not open include file ``" + filename_with_path + "''");
@@ -309,16 +320,26 @@ void Parser::popIncludeFile()
 
 int Parser::yyinput(char *buffer, const int max_size)
 {
+   // prevent valgrind warnings abount uninitialized memory
+   std::fill(buffer, buffer + max_size, 0u);
+   int mpi_has_been_started = 0;
+   int ierr                 = MPI_Initialized(&mpi_has_been_started);
+   TBOX_ASSERT(ierr == MPI_SUCCESS);
+
    int byte = 0;
    int rank = 0;
-   int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
+   if (mpi_has_been_started) {
+      ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
    if (rank == 0) {
       byte = fread(buffer, 1, max_size, d_parse_stack.getFirstItem().d_fstream);
    }
-   ierr = MPI_Bcast(&byte, 1, MPI_INT, 0, MPI_COMM_WORLD);
-   TBOX_ASSERT(ierr == MPI_SUCCESS);
-   if (byte > 0) {
+   if (mpi_has_been_started) {
+      ierr = MPI_Bcast(&byte, 1, MPI_INT, 0, MPI_COMM_WORLD);
+      TBOX_ASSERT(ierr == MPI_SUCCESS);
+   }
+   if (byte > 0 && mpi_has_been_started) {
       ierr = MPI_Bcast(buffer, byte, MPI_INT, 0, MPI_COMM_WORLD);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
