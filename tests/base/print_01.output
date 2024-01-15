@@ -1,0 +1,8 @@
+db {
+   a0 = 42                                                  // input not used
+   a1 = 84                                                  // input not used
+   subdatabase {
+      f0 = 3.14                                             // input not used
+      f1 = 2.71                                             // input not used
+   }
+}

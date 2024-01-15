@@ -1,5 +1,10 @@
 ADD_CUSTOM_TARGET(tests)
 
+
+#
+# Define tests:
+#
+
 SET(TEST_DIRECTORIES base)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
@@ -26,3 +31,38 @@ ENDMACRO()
 
 
 SETUP(base print_01.C)
+SETUP(base read_01.C)
+SETUP(base read_02.C)
+
+#
+# Set up test infrastructure:
+#
+ADD_CUSTOM_COMMAND(TARGET tests
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/attest ${CMAKE_BINARY_DIR}/attest)
+
+FOREACH(_dir ${TEST_DIRECTORIES})
+  ADD_CUSTOM_COMMAND(TARGET "tests-${_dir}"
+    POST_BUILD
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
+    ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
+    VERBATIM)
+ENDFOREACH()
+
+# Find numdiff, if possible (we only need it for tests so its not essential that
+# we find it now)
+FIND_PROGRAM(NUMDIFF_EXECUTABLE NAMES numdiff HINTS ${NUMDIFF_ROOT} PATH_SUFFIXES bin)
+
+IF ("${NUMDIFF_EXECUTABLE}" STREQUAL "NUMDIFF_EXECUTABLE-NOTFOUND")
+  MESSAGE(WARNING "\
+The configuration script was not able to locate numdiff. If you want to run \
+the test suite you will need to either edit attest.conf, specify the path to \
+numdiff to attest, or rerun CMake with the argument NUMDIFF_ROOT specifying \
+numdiff's root installation directory.")
+  # clear the value so that attest.conf doesn't contain an invalid path
+  SET(NUMDIFF_EXECUTABLE "")
+ENDIF()
+
+# Set up the default attest configuration file:
+CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/tests/attest.conf.in
+  ${CMAKE_BINARY_DIR}/attest.conf)
