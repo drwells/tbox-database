@@ -341,7 +341,7 @@ int Parser::yyinput(char *buffer, const int max_size)
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    if (byte > 0 && mpi_has_been_started) {
-      ierr = MPI_Bcast(buffer, byte, MPI_INT, 0, d_communicator);
+      ierr = MPI_Bcast(buffer, byte, MPI_CHAR, 0, d_communicator);
       TBOX_ASSERT(ierr == MPI_SUCCESS);
    }
    return(byte);
